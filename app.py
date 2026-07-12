@@ -1,78 +1,93 @@
+# ============================================================
+# STUDENT PLACEMENT PREDICTION SYSTEM
+# COMPLETE STREAMLIT APP
+# ============================================================
+
 import streamlit as st
 import pandas as pd
 import numpy as np
 import joblib
 import plotly.express as px
 import plotly.graph_objects as go
+from datetime import datetime
 
 
-# ---------------------------------------------------------
-# Page Setting
-# ---------------------------------------------------------
+# ============================================================
+# 1. PAGE SETTINGS
+# ============================================================
+
 st.set_page_config(
     page_title="Student Placement Prediction System",
     page_icon="🎓",
-    layout="wide"
+    layout="wide",
+    initial_sidebar_state="expanded"
 )
 
 
-# ---------------------------------------------------------
-# Custom Theme
-# ---------------------------------------------------------
+# ============================================================
+# 2. APP THEME
+# ============================================================
+
 st.markdown(
     """
     <style>
+
     .main-title {
         font-size: 42px;
         font-weight: 800;
-        color: #32104B;
-        margin-bottom: 5px;
+        color: #2F123D;
+        margin-bottom: 4px;
     }
 
-    .sub-title {
-        font-size: 17px;
-        color: #555555;
-        margin-bottom: 25px;
+    .subtitle {
+        font-size: 16px;
+        color: #5A5A5A;
+        margin-bottom: 20px;
     }
 
-    .info-card {
+    .objective-card {
         background-color: white;
-        padding: 20px;
-        border-radius: 15px;
+        padding: 18px;
+        border-radius: 14px;
         border-left: 6px solid #4B145F;
-        box-shadow: 0px 3px 12px rgba(0,0,0,0.08);
-        margin-bottom: 18px;
+        box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+        margin-bottom: 20px;
     }
 
-    .success-box {
+    .success-card {
         background-color: #EAF8F1;
-        padding: 18px;
-        border-radius: 12px;
-        border-left: 6px solid #178F83;
-        font-weight: 700;
         color: #0B5345;
+        border-left: 6px solid #178F83;
+        padding: 18px;
+        border-radius: 12px;
+        font-weight: 700;
     }
 
-    .warning-box {
+    .warning-card {
         background-color: #FFF6E6;
+        color: #7D6608;
+        border-left: 6px solid #F2A900;
         padding: 18px;
         border-radius: 12px;
-        border-left: 6px solid #F2A900;
         font-weight: 700;
-        color: #7D6608;
     }
 
-    .danger-box {
+    .danger-card {
         background-color: #FDEDEC;
+        color: #922B21;
+        border-left: 6px solid #D95C59;
         padding: 18px;
         border-radius: 12px;
-        border-left: 6px solid #D95C59;
         font-weight: 700;
-        color: #922B21;
     }
 
     [data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #32104B, #4B145F, #111111);
+        background: linear-gradient(
+            180deg,
+            #111111,
+            #291234,
+            #4B145F
+        );
     }
 
     [data-testid="stSidebar"] label,
@@ -82,67 +97,120 @@ st.markdown(
     [data-testid="stSidebar"] h3 {
         color: white;
     }
+
+    div[data-testid="stMetric"] {
+        background-color: white;
+        padding: 14px;
+        border-radius: 14px;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.07);
+    }
+
     </style>
     """,
     unsafe_allow_html=True
 )
 
 
-# ---------------------------------------------------------
-# Load Model
-# ---------------------------------------------------------
+# ============================================================
+# 3. SAFE TABLE FUNCTION
+# FIXES PYARROW MIXED DATA-TYPE ERROR
+# ============================================================
+
+def show_safe_table(dataframe):
+    safe_dataframe = dataframe.copy()
+
+    for column in safe_dataframe.columns:
+        safe_dataframe[column] = (
+            safe_dataframe[column]
+            .fillna("")
+            .astype(str)
+        )
+
+    st.dataframe(
+        safe_dataframe,
+        use_container_width=True,
+        hide_index=True
+    )
+
+
+# ============================================================
+# 4. LOAD MODEL
+# ============================================================
+
 @st.cache_resource
 def load_model():
-    model = joblib.load("model.pkl")
-    return model
+    return joblib.load("model.pkl")
 
 
 try:
     model = load_model()
+
 except FileNotFoundError:
-    st.error("model.pkl file not found. Please keep model.pkl in the same folder as app.py.")
+    st.error(
+        "model.pkl was not found. Keep model.pkl in the same folder as app.py."
+    )
     st.stop()
+
 except Exception as error:
-    st.error("Model could not be loaded. Please check model.pkl and requirements.txt.")
-    st.write(error)
+    st.error("The trained model could not be loaded.")
+    st.write(str(error))
     st.stop()
 
 
-# ---------------------------------------------------------
-# Feature Engineering Function
-# This must match the final notebook feature engineering
-# ---------------------------------------------------------
+# ============================================================
+# 5. FEATURE ENGINEERING
+# MUST MATCH THE NOTEBOOK
+# ============================================================
+
 def create_features(data):
     data = data.copy()
 
     data["academic_average"] = data[
-        ["ssc_p", "hsc_p", "degree_p", "mba_p"]
+        [
+            "ssc_p",
+            "hsc_p",
+            "degree_p",
+            "mba_p"
+        ]
     ].mean(axis=1)
 
     data["employability_average"] = data[
-        ["degree_p", "etest_p", "mba_p"]
+        [
+            "degree_p",
+            "etest_p",
+            "mba_p"
+        ]
     ].mean(axis=1)
 
-    data["academic_growth"] = data["degree_p"] - data["ssc_p"]
+    data["academic_growth"] = (
+        data["degree_p"] - data["ssc_p"]
+    )
 
     data["low_score_count"] = (
-        (data["ssc_p"] < 60).astype(int) +
-        (data["hsc_p"] < 60).astype(int) +
-        (data["degree_p"] < 60).astype(int) +
-        (data["etest_p"] < 60).astype(int) +
-        (data["mba_p"] < 60).astype(int)
+        (data["ssc_p"] < 60).astype(int)
+        + (data["hsc_p"] < 60).astype(int)
+        + (data["degree_p"] < 60).astype(int)
+        + (data["etest_p"] < 60).astype(int)
+        + (data["mba_p"] < 60).astype(int)
     )
 
     return data
 
 
-# ---------------------------------------------------------
-# Sidebar Inputs
-# ---------------------------------------------------------
-st.sidebar.title("🎓 Student Details")
-st.sidebar.write("Enter student information for prediction.")
+# ============================================================
+# 6. SIDEBAR INPUTS
+# ============================================================
 
-gender = st.sidebar.selectbox("Gender", ["M", "F"])
+st.sidebar.title("🎓 Student Details")
+
+st.sidebar.write(
+    "Enter academic and employability information."
+)
+
+gender = st.sidebar.selectbox(
+    "Gender",
+    ["M", "F"]
+)
 
 ssc_p = st.sidebar.number_input(
     "SSC Percentage",
@@ -152,7 +220,10 @@ ssc_p = st.sidebar.number_input(
     step=0.5
 )
 
-ssc_b = st.sidebar.selectbox("SSC Board", ["Central", "Others"])
+ssc_b = st.sidebar.selectbox(
+    "SSC Board",
+    ["Central", "Others"]
+)
 
 hsc_p = st.sidebar.number_input(
     "HSC Percentage",
@@ -162,11 +233,18 @@ hsc_p = st.sidebar.number_input(
     step=0.5
 )
 
-hsc_b = st.sidebar.selectbox("HSC Board", ["Central", "Others"])
+hsc_b = st.sidebar.selectbox(
+    "HSC Board",
+    ["Central", "Others"]
+)
 
 hsc_s = st.sidebar.selectbox(
     "HSC Stream",
-    ["Commerce", "Science", "Arts"]
+    [
+        "Commerce",
+        "Science",
+        "Arts"
+    ]
 )
 
 degree_p = st.sidebar.number_input(
@@ -179,10 +257,17 @@ degree_p = st.sidebar.number_input(
 
 degree_t = st.sidebar.selectbox(
     "Degree Type",
-    ["Comm&Mgmt", "Sci&Tech", "Others"]
+    [
+        "Comm&Mgmt",
+        "Sci&Tech",
+        "Others"
+    ]
 )
 
-workex = st.sidebar.selectbox("Work Experience", ["Yes", "No"])
+workex = st.sidebar.selectbox(
+    "Work Experience",
+    ["Yes", "No"]
+)
 
 etest_p = st.sidebar.number_input(
     "Employability Test Percentage",
@@ -194,7 +279,11 @@ etest_p = st.sidebar.number_input(
 
 specialisation = st.sidebar.selectbox(
     "Specialisation",
-    ["Mkt&Fin", "Mkt&HR", "Business Analytics"]
+    [
+        "Mkt&Fin",
+        "Mkt&HR",
+        "Business Analytics"
+    ]
 )
 
 mba_p = st.sidebar.number_input(
@@ -205,36 +294,51 @@ mba_p = st.sidebar.number_input(
     step=0.5
 )
 
-predict_button = st.sidebar.button("Predict Placement")
-
-
-# ---------------------------------------------------------
-# Main Header
-# ---------------------------------------------------------
-st.markdown(
-    '<div class="main-title">Student Placement Prediction System</div>',
-    unsafe_allow_html=True
+predict_button = st.sidebar.button(
+    "Predict Placement",
+    use_container_width=True
 )
 
+
+# ============================================================
+# 7. MAIN HEADER
+# ============================================================
+
 st.markdown(
-    '<div class="sub-title">A placement intelligence dashboard for predicting student placement readiness using machine learning.</div>',
+    """
+    <div class="main-title">
+    Student Placement Prediction System
+    </div>
+    """,
     unsafe_allow_html=True
 )
 
 st.markdown(
     """
-    <div class="info-card">
-    <b>Business Objective:</b> This app helps placement teams evaluate student placement probability,
-    readiness category, strengths, weaknesses and improvement recommendations.
+    <div class="subtitle">
+    A placement intelligence dashboard for predicting student
+    placement readiness using machine learning.
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
+st.markdown(
+    """
+    <div class="objective-card">
+    <b>Business Objective:</b>
+    Evaluate student placement probability, readiness category,
+    strengths, weaknesses and improvement recommendations.
     </div>
     """,
     unsafe_allow_html=True
 )
 
 
-# ---------------------------------------------------------
-# Create Input Data
-# ---------------------------------------------------------
+# ============================================================
+# 8. CREATE MODEL INPUT
+# ============================================================
+
 input_data = pd.DataFrame({
     "gender": [gender],
     "ssc_p": [ssc_p],
@@ -252,77 +356,148 @@ input_data = pd.DataFrame({
 
 model_input = create_features(input_data)
 
-academic_average = round(model_input["academic_average"].iloc[0], 2)
-employability_average = round(model_input["employability_average"].iloc[0], 2)
-academic_growth = round(model_input["academic_growth"].iloc[0], 2)
-low_score_count = int(model_input["low_score_count"].iloc[0])
+academic_average = round(
+    float(model_input["academic_average"].iloc[0]),
+    2
+)
+
+employability_average = round(
+    float(model_input["employability_average"].iloc[0]),
+    2
+)
+
+academic_growth = round(
+    float(model_input["academic_growth"].iloc[0]),
+    2
+)
+
+low_score_count = int(
+    model_input["low_score_count"].iloc[0]
+)
 
 
-# ---------------------------------------------------------
-# Prediction Section
-# ---------------------------------------------------------
+# ============================================================
+# 9. RUN PREDICTION
+# ============================================================
+
 if predict_button:
 
-    prediction = model.predict(model_input)[0]
+    try:
+        prediction = model.predict(model_input)[0]
 
-    probability_values = model.predict_proba(model_input)[0]
-    class_names = list(model.classes_)
+        probability_values = model.predict_proba(
+            model_input
+        )[0]
 
-    if "Placed" in class_names:
-        placed_index = class_names.index("Placed")
-    else:
-        placed_index = 1
+        model_classes = list(model.classes_)
 
-    placement_probability = round(probability_values[placed_index] * 100, 2)
+        if "Placed" in model_classes:
+            placed_index = model_classes.index("Placed")
+        else:
+            placed_index = 1
+
+        placement_probability = round(
+            float(probability_values[placed_index]) * 100,
+            2
+        )
+
+    except Exception as error:
+        st.error("Prediction could not be completed.")
+        st.write(str(error))
+        st.stop()
+
+
+    # ========================================================
+    # 10. READINESS CATEGORY
+    # ========================================================
 
     if placement_probability >= 75:
-        readiness = "High Placement Readiness"
-        risk = "Low Risk"
-        box_class = "success-box"
-    elif placement_probability >= 45:
-        readiness = "Moderate Placement Readiness"
-        risk = "Medium Risk"
-        box_class = "warning-box"
-    else:
-        readiness = "High Support Required"
-        risk = "High Risk"
-        box_class = "danger-box"
 
-    # -----------------------------------------------------
-    # KPI Cards
-    # -----------------------------------------------------
+        readiness = "High Placement Readiness"
+        risk_level = "Low Risk"
+        readiness_icon = "🟢"
+        readiness_card = "success-card"
+
+    elif placement_probability >= 45:
+
+        readiness = "Moderate Placement Readiness"
+        risk_level = "Medium Risk"
+        readiness_icon = "🟡"
+        readiness_card = "warning-card"
+
+    else:
+
+        readiness = "High Support Required"
+        risk_level = "High Risk"
+        readiness_icon = "🔴"
+        readiness_card = "danger-card"
+
+
+    # ========================================================
+    # 11. KPI CARDS
+    # ========================================================
+
     col1, col2, col3, col4 = st.columns(4)
 
-    col1.metric("Placement Probability", f"{placement_probability}%")
-    col2.metric("Academic Average", f"{academic_average}%")
-    col3.metric("Employability Average", f"{employability_average}%")
-    col4.metric("Risk Level", risk)
+    col1.metric(
+        "Placement Probability",
+        f"{placement_probability:.2f}%"
+    )
 
-    # -----------------------------------------------------
-    # Prediction Result
-    # -----------------------------------------------------
+    col2.metric(
+        "Academic Average",
+        f"{academic_average:.2f}%"
+    )
+
+    col3.metric(
+        "Employability Average",
+        f"{employability_average:.2f}%"
+    )
+
+    col4.metric(
+        "Risk Level",
+        risk_level
+    )
+
+
+    # ========================================================
+    # 12. PREDICTION RESULT
+    # ========================================================
+
     st.subheader("Prediction Result")
 
-    if prediction == "Placed":
-        st.markdown(
-            f'<div class="success-box">Prediction: {prediction}</div>',
-            unsafe_allow_html=True
-        )
+    if str(prediction) == "Placed":
+        prediction_card = "success-card"
     else:
-        st.markdown(
-            f'<div class="danger-box">Prediction: {prediction}</div>',
-            unsafe_allow_html=True
-        )
+        prediction_card = "danger-card"
 
-    st.subheader("Readiness Category")
     st.markdown(
-        f'<div class="{box_class}">{readiness}</div>',
+        f"""
+        <div class="{prediction_card}">
+        Prediction: {prediction}<br>
+        Placement Probability: {placement_probability:.2f}%<br>
+        Risk Level: {risk_level}
+        </div>
+        """,
         unsafe_allow_html=True
     )
 
-    # -----------------------------------------------------
-    # Tabs
-    # -----------------------------------------------------
+    st.subheader("Readiness Category")
+
+    st.markdown(
+        f"""
+        <div class="{readiness_card}">
+        {readiness_icon} {readiness}
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+
+    # ========================================================
+    # 13. TABS
+    # ========================================================
+
     tab1, tab2, tab3, tab4 = st.tabs([
         "Executive Summary",
         "Visual Analytics",
@@ -330,22 +505,41 @@ if predict_button:
         "Final Report"
     ])
 
-    # -----------------------------------------------------
-    # Tab 1: Executive Summary
-    # -----------------------------------------------------
+
+    # ========================================================
+    # TAB 1 — EXECUTIVE SUMMARY
+    # ========================================================
+
     with tab1:
-        st.write("### Executive Summary")
 
-        st.write(
-            f"""
-            The model predicts the student as **{prediction}** with a placement probability of 
-            **{placement_probability}%**. The student falls under the **{readiness}** category.
-            
-            This output can help placement teams identify student readiness, support needs and improvement areas.
-            """
-        )
+        st.subheader("Executive Summary")
 
-        summary = pd.DataFrame({
+        if placement_probability >= 75:
+
+            executive_message = (
+                "The student demonstrates strong placement readiness. "
+                "The recommended focus is interview preparation and "
+                "targeted applications."
+            )
+
+        elif placement_probability >= 45:
+
+            executive_message = (
+                "The student demonstrates moderate placement readiness. "
+                "Some academic or employability gaps should be improved."
+            )
+
+        else:
+
+            executive_message = (
+                "The student requires structured placement support. "
+                "Academic, aptitude and practical-development actions "
+                "are recommended."
+            )
+
+        st.write(executive_message)
+
+        summary_table = pd.DataFrame({
             "Metric": [
                 "Prediction",
                 "Placement Probability",
@@ -358,186 +552,422 @@ if predict_button:
                 "Work Experience",
                 "Specialisation"
             ],
+
             "Value": [
-                prediction,
-                f"{placement_probability}%",
-                readiness,
-                risk,
-                f"{academic_average}%",
-                f"{employability_average}%",
-                academic_growth,
-                low_score_count,
-                workex,
-                specialisation
+                str(prediction),
+                f"{placement_probability:.2f}%",
+                str(readiness),
+                str(risk_level),
+                f"{academic_average:.2f}%",
+                f"{employability_average:.2f}%",
+                f"{academic_growth:.2f}",
+                str(low_score_count),
+                str(workex),
+                str(specialisation)
             ]
         })
 
-        st.dataframe(summary, use_container_width=True)
+        show_safe_table(summary_table)
 
-    # -----------------------------------------------------
-    # Tab 2: Visual Analytics
-    # -----------------------------------------------------
+
+    # ========================================================
+    # TAB 2 — VISUAL ANALYTICS
+    # ========================================================
+
     with tab2:
-        st.write("### Placement Probability Gauge")
 
-        gauge = go.Figure(go.Indicator(
-            mode="gauge+number",
-            value=placement_probability,
-            title={"text": "Placement Probability"},
-            gauge={
-                "axis": {"range": [0, 100]},
-                "bar": {"color": "#4B145F"},
-                "steps": [
-                    {"range": [0, 45], "color": "#FDEDEC"},
-                    {"range": [45, 75], "color": "#FFF6E6"},
-                    {"range": [75, 100], "color": "#EAF8F1"}
-                ]
-            }
-        ))
+        st.subheader("Placement Probability Gauge")
 
-        st.plotly_chart(gauge, use_container_width=True)
+        gauge = go.Figure(
+            go.Indicator(
+                mode="gauge+number",
+                value=placement_probability,
 
-        st.write("### Student Score vs Benchmark")
+                number={
+                    "suffix": "%"
+                },
 
-        benchmark = pd.DataFrame({
-            "Area": ["SSC", "HSC", "Degree", "Employability Test", "MBA"],
-            "Student Score": [ssc_p, hsc_p, degree_p, etest_p, mba_p],
-            "Benchmark": [65, 65, 65, 70, 62]
+                gauge={
+                    "axis": {
+                        "range": [0, 100]
+                    },
+
+                    "bar": {
+                        "color": "#4B145F"
+                    },
+
+                    "steps": [
+                        {
+                            "range": [0, 45],
+                            "color": "#FDEDEC"
+                        },
+                        {
+                            "range": [45, 75],
+                            "color": "#FFF6E6"
+                        },
+                        {
+                            "range": [75, 100],
+                            "color": "#EAF8F1"
+                        }
+                    ],
+
+                    "threshold": {
+                        "line": {
+                            "color": "#32104B",
+                            "width": 4
+                        },
+                        "value": placement_probability
+                    }
+                }
+            )
+        )
+
+        gauge.update_layout(
+            height=400
+        )
+
+        st.plotly_chart(
+            gauge,
+            use_container_width=True
+        )
+
+
+        st.subheader("Student Score vs Benchmark")
+
+        benchmark_data = pd.DataFrame({
+            "Area": [
+                "SSC",
+                "HSC",
+                "Degree",
+                "Employability Test",
+                "MBA"
+            ],
+
+            "Student Score": [
+                float(ssc_p),
+                float(hsc_p),
+                float(degree_p),
+                float(etest_p),
+                float(mba_p)
+            ],
+
+            "Benchmark": [
+                65.0,
+                65.0,
+                65.0,
+                70.0,
+                62.0
+            ]
         })
 
-        benchmark_long = benchmark.melt(
+        benchmark_long = benchmark_data.melt(
             id_vars="Area",
-            value_vars=["Student Score", "Benchmark"],
+            value_vars=[
+                "Student Score",
+                "Benchmark"
+            ],
             var_name="Measure",
             value_name="Score"
         )
 
-        benchmark_fig = px.bar(
+        benchmark_chart = px.bar(
             benchmark_long,
             x="Area",
             y="Score",
             color="Measure",
             barmode="group",
             text_auto=".1f",
-            title="Student Score Compared with Benchmark"
+            title="Student Performance Compared with Benchmark"
         )
 
-        benchmark_fig.update_layout(
+        benchmark_chart.update_layout(
             yaxis_range=[0, 100],
             plot_bgcolor="white",
             paper_bgcolor="white"
         )
 
-        st.plotly_chart(benchmark_fig, use_container_width=True)
-
-        st.write("### Strength and Weakness View")
-
-        strength = pd.DataFrame({
-            "Area": ["SSC", "HSC", "Degree", "Employability Test", "MBA"],
-            "Score": [ssc_p, hsc_p, degree_p, etest_p, mba_p]
-        })
-
-        strength["Status"] = np.where(
-            strength["Score"] >= 70,
-            "Strong",
-            np.where(strength["Score"] >= 60, "Moderate", "Needs Improvement")
+        st.plotly_chart(
+            benchmark_chart,
+            use_container_width=True
         )
 
-        strength_fig = px.bar(
-            strength,
+
+        st.subheader("Strength and Weakness Analysis")
+
+        strength_data = pd.DataFrame({
+            "Area": [
+                "SSC",
+                "HSC",
+                "Degree",
+                "Employability Test",
+                "MBA"
+            ],
+
+            "Score": [
+                float(ssc_p),
+                float(hsc_p),
+                float(degree_p),
+                float(etest_p),
+                float(mba_p)
+            ]
+        })
+
+        strength_data["Status"] = np.where(
+            strength_data["Score"] >= 70,
+            "Strong",
+            np.where(
+                strength_data["Score"] >= 60,
+                "Moderate",
+                "Needs Improvement"
+            )
+        )
+
+        strength_chart = px.bar(
+            strength_data,
             x="Score",
             y="Area",
             orientation="h",
             color="Status",
             text="Score",
-            title="Student Strength and Weakness Analysis"
+            title="Student Strength and Weakness Profile"
         )
 
-        strength_fig.update_layout(
+        strength_chart.update_layout(
             xaxis_range=[0, 100],
             plot_bgcolor="white",
             paper_bgcolor="white"
         )
 
-        st.plotly_chart(strength_fig, use_container_width=True)
+        st.plotly_chart(
+            strength_chart,
+            use_container_width=True
+        )
 
-    # -----------------------------------------------------
-    # Tab 3: Recommendations
-    # -----------------------------------------------------
+
+    # ========================================================
+    # TAB 3 — RECOMMENDATIONS
+    # ========================================================
+
     with tab3:
-        st.write("### Personalized Recommendations")
 
-        recommendations = []
+        st.subheader("Priority Gap Analysis")
 
-        if degree_p < 65:
-            recommendations.append([
-                "High",
-                "Improve degree-level academic performance because degree score strongly affects placement readiness."
-            ])
+        benchmark_values = {
+            "SSC": (float(ssc_p), 65.0),
+            "HSC": (float(hsc_p), 65.0),
+            "Degree": (float(degree_p), 65.0),
+            "Employability Test": (float(etest_p), 70.0),
+            "MBA": (float(mba_p), 62.0)
+        }
 
-        if etest_p < 70:
-            recommendations.append([
-                "High",
-                "Focus on aptitude, reasoning and employability test preparation."
-            ])
+        gap_records = []
+
+        for area, values in benchmark_values.items():
+
+            current_score = values[0]
+            benchmark_score = values[1]
+
+            score_gap = round(
+                current_score - benchmark_score,
+                2
+            )
+
+            if score_gap < 0:
+
+                if score_gap <= -10:
+                    priority = "High"
+                else:
+                    priority = "Medium"
+
+                gap_records.append({
+                    "Priority": str(priority),
+                    "Area": str(area),
+                    "Current Score": f"{current_score:.2f}",
+                    "Benchmark": f"{benchmark_score:.2f}",
+                    "Gap": f"{score_gap:.2f}"
+                })
 
         if workex == "No":
-            recommendations.append([
-                "Medium",
-                "Add internship, live project or industry exposure to improve practical profile."
-            ])
+
+            gap_records.append({
+                "Priority": "Medium",
+                "Area": "Work Experience",
+                "Current Score": "No",
+                "Benchmark": "Yes",
+                "Gap": "Practical exposure required"
+            })
+
+        gap_table = pd.DataFrame(gap_records)
+
+        if gap_table.empty:
+
+            st.success(
+                "No major benchmark gaps were identified."
+            )
+
+        else:
+
+            show_safe_table(gap_table)
+
+
+        st.subheader("Personalized Recommendations")
+
+        recommendation_records = []
+
+        if degree_p < 65:
+
+            recommendation_records.append({
+                "Priority": "High",
+                "Area": "Degree Performance",
+                "Recommended Action":
+                    "Improve subject knowledge and degree-level performance."
+            })
+
+        if etest_p < 70:
+
+            recommendation_records.append({
+                "Priority": "High",
+                "Area": "Employability Test",
+                "Recommended Action":
+                    "Practice aptitude, reasoning and employability tests."
+            })
+
+        if workex == "No":
+
+            recommendation_records.append({
+                "Priority": "Medium",
+                "Area": "Practical Exposure",
+                "Recommended Action":
+                    "Complete an internship, live project or industry assignment."
+            })
 
         if mba_p < 62:
-            recommendations.append([
-                "Medium",
-                "Strengthen MBA academic performance and business fundamentals."
-            ])
 
-        if ssc_p < 60 or hsc_p < 60:
-            recommendations.append([
-                "Medium",
-                "Improve academic foundation and communication confidence."
-            ])
+            recommendation_records.append({
+                "Priority": "Medium",
+                "Area": "MBA Performance",
+                "Recommended Action":
+                    "Strengthen business fundamentals and MBA subjects."
+            })
 
-        if specialisation == "Mkt&HR":
-            recommendations.append([
-                "Low",
-                "Add HR analytics, Excel, Power BI or business analytics skills for stronger placement profile."
-            ])
+        if specialisation == "Business Analytics":
 
-        if len(recommendations) == 0:
-            recommendations.append([
-                "Low",
-                "Profile is strong. Continue interview preparation, resume improvement and LinkedIn optimization."
-            ])
+            recommendation_records.append({
+                "Priority": "Low",
+                "Area": "Technical Skills",
+                "Recommended Action":
+                    "Develop Excel, SQL, Power BI and Python projects."
+            })
 
-        recommendation_df = pd.DataFrame(
-            recommendations,
-            columns=["Priority", "Recommendation"]
+        elif specialisation == "Mkt&Fin":
+
+            recommendation_records.append({
+                "Priority": "Low",
+                "Area": "Domain Skills",
+                "Recommended Action":
+                    "Develop marketing and financial-analysis skills."
+            })
+
+        elif specialisation == "Mkt&HR":
+
+            recommendation_records.append({
+                "Priority": "Low",
+                "Area": "Domain Skills",
+                "Recommended Action":
+                    "Develop HR analytics, Excel and reporting skills."
+            })
+
+        if not recommendation_records:
+
+            recommendation_records.append({
+                "Priority": "Low",
+                "Area": "Placement Preparation",
+                "Recommended Action":
+                    "Continue interview and resume preparation."
+            })
+
+        recommendation_table = pd.DataFrame(
+            recommendation_records
         )
 
-        st.dataframe(recommendation_df, use_container_width=True)
+        show_safe_table(recommendation_table)
 
-        st.markdown(
-            """
-            ### Suggested Skill Roadmap
-            
-            - Resume and LinkedIn improvement  
-            - Mock interview and group discussion practice  
-            - Aptitude and logical reasoning preparation  
-            - Excel, SQL, Power BI or Tableau project  
-            - Internship or live project experience  
-            """
+
+        st.subheader("Suggested Entry-Level Roles")
+
+        role_mapping = {
+            "Business Analytics": [
+                "Business Analyst Intern",
+                "Junior Data Analyst",
+                "Reporting Analyst",
+                "MIS Analyst"
+            ],
+
+            "Mkt&Fin": [
+                "Marketing Analyst",
+                "Financial Analyst Trainee",
+                "Sales Analyst",
+                "Business Development Analyst"
+            ],
+
+            "Mkt&HR": [
+                "HR Analyst",
+                "Recruitment Coordinator",
+                "HR Operations Associate",
+                "Talent Acquisition Associate"
+            ]
+        }
+
+        suggested_roles = role_mapping.get(
+            specialisation,
+            ["Graduate Management Trainee"]
         )
 
-    # -----------------------------------------------------
-    # Tab 4: Final Report
-    # -----------------------------------------------------
+        for role in suggested_roles:
+            st.write("•", role)
+
+        st.caption(
+            "Role suggestions are rule-based guidance, "
+            "not machine-learning predictions."
+        )
+
+
+        st.subheader("Four-Week Improvement Plan")
+
+        action_plan = pd.DataFrame({
+            "Week": [
+                "Week 1",
+                "Week 2",
+                "Week 3",
+                "Week 4"
+            ],
+
+            "Action": [
+                "Resume, LinkedIn and readiness review",
+                "Academic, aptitude and reasoning preparation",
+                "Live project or practical skill development",
+                "Mock interviews and targeted applications"
+            ]
+        })
+
+        show_safe_table(action_plan)
+
+
+    # ========================================================
+    # TAB 4 — FINAL REPORT
+    # ========================================================
+
     with tab4:
-        st.write("### Final Prediction Report")
 
-        report = pd.DataFrame({
+        st.subheader("Final Placement Assessment Report")
+
+        assessment_time = datetime.now().strftime(
+            "%d-%m-%Y %H:%M"
+        )
+
+        final_report = pd.DataFrame({
             "Field": [
+                "Assessment Date",
                 "Prediction",
                 "Placement Probability",
                 "Readiness Category",
@@ -549,39 +979,53 @@ if predict_button:
                 "Work Experience",
                 "Specialisation"
             ],
+
             "Value": [
-                prediction,
-                f"{placement_probability}%",
-                readiness,
-                risk,
-                f"{academic_average}%",
-                f"{employability_average}%",
-                academic_growth,
-                low_score_count,
-                workex,
-                specialisation
+                str(assessment_time),
+                str(prediction),
+                f"{placement_probability:.2f}%",
+                str(readiness),
+                str(risk_level),
+                f"{academic_average:.2f}%",
+                f"{employability_average:.2f}%",
+                f"{academic_growth:.2f}",
+                str(low_score_count),
+                str(workex),
+                str(specialisation)
             ]
         })
 
-        st.dataframe(report, use_container_width=True)
+        show_safe_table(final_report)
 
-        csv = report.to_csv(index=False).encode("utf-8")
+        csv_report = final_report.astype(str).to_csv(
+            index=False
+        ).encode("utf-8")
 
         st.download_button(
-            label="Download Final Report",
-            data=csv,
-            file_name="student_placement_prediction_report.csv",
-            mime="text/csv"
+            label="Download Placement Report",
+            data=csv_report,
+            file_name="student_placement_report.csv",
+            mime="text/csv",
+            use_container_width=True
         )
 
+
 else:
-    st.info("Enter student details in the sidebar and click Predict Placement.")
+
+    st.info(
+        "Enter student information in the sidebar "
+        "and click Predict Placement."
+    )
 
 
-# ---------------------------------------------------------
-# Footer
-# ---------------------------------------------------------
+# ============================================================
+# 14. FOOTER
+# ============================================================
+
 st.markdown("---")
+
 st.caption(
-    "Academic project only. Prediction should support placement decisions and should not replace human judgement."
+    "Academic decision-support application. "
+    "Predictions should support, not replace, "
+    "human placement decisions."
 )
