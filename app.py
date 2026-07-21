@@ -272,6 +272,282 @@ st.markdown(
         line-height: 1.55;
     }
 
+    /* Premium success / readiness experience */
+    .achievement-shell {
+        position: relative;
+        overflow: hidden;
+        padding: 1.4rem;
+        margin: 1rem 0 1.1rem;
+        border-radius: 22px;
+        background:
+            radial-gradient(circle at 85% 15%, rgba(255,255,255,.18), transparent 24%),
+            linear-gradient(135deg, #0f172a 0%, #312e81 52%, #0f766e 100%);
+        border: 1px solid rgba(255,255,255,.18);
+        box-shadow: 0 18px 46px rgba(15,23,42,.22);
+        animation: achievementFade .7s ease-out;
+    }
+
+    .achievement-shell:before {
+        content: "";
+        position: absolute;
+        width: 190px;
+        height: 190px;
+        right: -55px;
+        top: -65px;
+        border-radius: 50%;
+        background: rgba(255,255,255,.08);
+    }
+
+    .achievement-grid {
+        position: relative;
+        z-index: 2;
+        display: grid;
+        grid-template-columns: 1.35fr .65fr;
+        gap: 1.1rem;
+        align-items: center;
+    }
+
+    .achievement-kicker {
+        display: inline-flex;
+        align-items: center;
+        gap: .45rem;
+        padding: .35rem .75rem;
+        border-radius: 999px;
+        background: rgba(250,204,21,.14);
+        border: 1px solid rgba(250,204,21,.38);
+        color: #fde68a;
+        font-size: .76rem;
+        font-weight: 800;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+    }
+
+    .achievement-title {
+        margin: .75rem 0 .35rem;
+        color: #ffffff;
+        font-size: 1.85rem;
+        font-weight: 800;
+        letter-spacing: -.025em;
+    }
+
+    .achievement-copy {
+        margin: 0;
+        color: #dbeafe;
+        line-height: 1.65;
+        font-size: .96rem;
+    }
+
+    .achievement-metrics {
+        display: flex;
+        gap: .75rem;
+        flex-wrap: wrap;
+        margin-top: 1rem;
+    }
+
+    .achievement-pill {
+        padding: .65rem .8rem;
+        border-radius: 13px;
+        background: rgba(255,255,255,.10);
+        border: 1px solid rgba(255,255,255,.14);
+        min-width: 135px;
+    }
+
+    .achievement-pill-label {
+        color: #bfdbfe;
+        font-size: .68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .05em;
+    }
+
+    .achievement-pill-value {
+        color: #ffffff;
+        font-size: 1rem;
+        font-weight: 800;
+        margin-top: .16rem;
+    }
+
+    .graduate-visual {
+        position: relative;
+        min-height: 180px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .graduate-card {
+        width: 165px;
+        height: 165px;
+        border-radius: 28px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background:
+            radial-gradient(circle at 50% 35%, rgba(255,255,255,.22), transparent 34%),
+            linear-gradient(145deg, rgba(255,255,255,.16), rgba(255,255,255,.06));
+        border: 1px solid rgba(255,255,255,.18);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,.18), 0 16px 32px rgba(0,0,0,.18);
+        animation: gentleFloat 3.4s ease-in-out infinite;
+    }
+
+    .graduate-icon {
+        font-size: 4.4rem;
+        line-height: 1;
+        filter: drop-shadow(0 8px 12px rgba(0,0,0,.20));
+    }
+
+    .graduate-label {
+        margin-top: .55rem;
+        color: #ffffff;
+        font-size: .76rem;
+        font-weight: 800;
+        letter-spacing: .10em;
+        text-transform: uppercase;
+    }
+
+    .readiness-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: .55rem;
+        padding: .72rem 1rem;
+        border-radius: 14px;
+        background: linear-gradient(135deg, #fef3c7, #fde68a);
+        color: #78350f;
+        border: 1px solid #f59e0b;
+        font-weight: 800;
+        box-shadow: 0 10px 24px rgba(245,158,11,.18);
+        margin: .7rem 0 1rem;
+    }
+
+    .journey {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: .65rem;
+        margin-top: 1rem;
+    }
+
+    .journey-step {
+        position: relative;
+        padding: .8rem .65rem;
+        border-radius: 14px;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 8px 20px rgba(15,23,42,.06);
+        text-align: center;
+    }
+
+    .journey-step-icon {
+        font-size: 1.4rem;
+    }
+
+    .journey-step-title {
+        color: #0f172a;
+        font-weight: 800;
+        font-size: .82rem;
+        margin-top: .25rem;
+    }
+
+    .journey-step-subtitle {
+        color: #64748b;
+        font-size: .69rem;
+        margin-top: .15rem;
+    }
+
+    .offer-card {
+        position: relative;
+        overflow: hidden;
+        padding: 1.2rem 1.25rem;
+        border-radius: 18px;
+        background:
+            linear-gradient(135deg, rgba(255,255,255,.97), rgba(240,253,250,.97));
+        border: 1px solid #a7f3d0;
+        box-shadow: 0 14px 34px rgba(5,150,105,.10);
+    }
+
+    .offer-card:after {
+        content: "✓";
+        position: absolute;
+        right: 1rem;
+        top: .6rem;
+        font-size: 4rem;
+        color: rgba(16,185,129,.12);
+        font-weight: 800;
+    }
+
+    .offer-status {
+        display: inline-block;
+        padding: .3rem .6rem;
+        border-radius: 999px;
+        background: #d1fae5;
+        color: #065f46;
+        font-size: .72rem;
+        font-weight: 800;
+        letter-spacing: .05em;
+        text-transform: uppercase;
+    }
+
+    .offer-title {
+        color: #064e3b;
+        margin: .65rem 0 .3rem;
+        font-size: 1.2rem;
+        font-weight: 800;
+    }
+
+    .offer-copy {
+        color: #475569;
+        margin: 0;
+        line-height: 1.6;
+        font-size: .9rem;
+    }
+
+    .support-shell {
+        padding: 1.25rem;
+        margin: 1rem 0;
+        border-radius: 20px;
+        background: linear-gradient(135deg, #fff7ed, #fef2f2);
+        border: 1px solid #fed7aa;
+        box-shadow: 0 12px 30px rgba(234,88,12,.08);
+    }
+
+    .support-title {
+        color: #9a3412;
+        font-size: 1.3rem;
+        font-weight: 800;
+        margin-bottom: .35rem;
+    }
+
+    .support-copy {
+        color: #7c2d12;
+        line-height: 1.6;
+        margin: 0;
+    }
+
+    @keyframes gentleFloat {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-8px); }
+    }
+
+    @keyframes achievementFade {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 900px) {
+        .achievement-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .journey {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .graduate-visual {
+            min-height: 150px;
+        }
+    }
+
+
     button[data-baseweb="tab"] {
         font-weight: 700 !important;
         color: #475569 !important;
@@ -473,6 +749,152 @@ def build_recommendations(values: dict, probability: float):
         )
 
     return items[:5]
+
+
+def normalize_prediction_label(prediction: str) -> str:
+    return str(prediction).strip().lower().replace("_", " ")
+
+
+def is_placed_prediction(prediction: str, probability: float) -> bool:
+    normalized = normalize_prediction_label(prediction)
+
+    positive_labels = {
+        "placed",
+        "1",
+        "yes",
+        "true",
+        "selected",
+        "placement",
+    }
+
+    negative_labels = {
+        "not placed",
+        "0",
+        "no",
+        "false",
+        "not selected",
+    }
+
+    if normalized in positive_labels:
+        return True
+
+    if normalized in negative_labels:
+        return False
+
+    return probability >= 0.50
+
+
+def get_candidate_tier(probability: float):
+    if probability >= 0.85:
+        return "Gold Ready", "🥇", "Exceptional Candidate"
+    if probability >= 0.70:
+        return "Silver Ready", "🥈", "Strong Candidate"
+    return "Bronze Ready", "🥉", "Developing Candidate"
+
+
+def render_success_experience(prediction: str, probability: float, readiness: str):
+    tier, medal, candidate_label = get_candidate_tier(probability)
+
+    st.markdown(
+        f"""
+        <div class="achievement-shell">
+            <div class="achievement-grid">
+                <div>
+                    <div class="achievement-kicker">
+                        🏆 Placement Achievement Unlocked
+                    </div>
+
+                    <div class="achievement-title">
+                        Congratulations — the profile is placement ready.
+                    </div>
+
+                    <p class="achievement-copy">
+                        The model has identified a positive placement outcome.
+                        The student demonstrates a strong combination of academic,
+                        employability and profile-readiness indicators.
+                    </p>
+
+                    <div class="achievement-metrics">
+                        <div class="achievement-pill">
+                            <div class="achievement-pill-label">Prediction</div>
+                            <div class="achievement-pill-value">{prediction}</div>
+                        </div>
+
+                        <div class="achievement-pill">
+                            <div class="achievement-pill-label">Probability</div>
+                            <div class="achievement-pill-value">{probability * 100:.2f}%</div>
+                        </div>
+
+                        <div class="achievement-pill">
+                            <div class="achievement-pill-label">Candidate Tier</div>
+                            <div class="achievement-pill-value">{tier}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="graduate-visual">
+                    <div class="graduate-card">
+                        <div class="graduate-icon">👩‍🎓</div>
+                        <div class="graduate-label">Career Ready</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="readiness-badge">
+            {medal} {tier} • {candidate_label}
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    st.markdown(
+        """
+        <div class="journey">
+            <div class="journey-step">
+                <div class="journey-step-icon">📘</div>
+                <div class="journey-step-title">Academic Profile</div>
+                <div class="journey-step-subtitle">Evaluated</div>
+            </div>
+
+            <div class="journey-step">
+                <div class="journey-step-icon">🧠</div>
+                <div class="journey-step-title">Employability</div>
+                <div class="journey-step-subtitle">Assessed</div>
+            </div>
+
+            <div class="journey-step">
+                <div class="journey-step-icon">⚙️</div>
+                <div class="journey-step-title">ML Evaluation</div>
+                <div class="journey-step-subtitle">Completed</div>
+            </div>
+
+            <div class="journey-step">
+                <div class="journey-step-icon">🎯</div>
+                <div class="journey-step-title">Placement Ready</div>
+                <div class="journey-step-subtitle">Achieved</div>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def render_support_experience(probability: float):
+    st.markdown(
+        f"""
+        <div class="support-shell">
+            <div class="support-title">🚀 Growth Path Identified</div>
+            <p class="support-copy">
+                The current probability is {probability * 100:.2f}%.
+                This is not a final judgment. The application has identified
+                the areas where focused preparation can improve placement readiness.
+            </p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
 
 
 # =========================================================
@@ -1009,6 +1431,17 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+placed_outcome = is_placed_prediction(prediction, probability)
+
+if placed_outcome:
+    render_success_experience(
+        prediction=prediction,
+        probability=probability,
+        readiness=readiness,
+    )
+else:
+    render_support_experience(probability)
+
 k1, k2, k3, k4 = st.columns(4)
 
 kpis = [
@@ -1294,6 +1727,38 @@ with tab4:
             """,
             unsafe_allow_html=True,
         )
+
+        if placed_outcome:
+            st.markdown(
+                f"""
+                <div class="offer-card">
+                    <span class="offer-status">Placement Readiness Approved</span>
+                    <div class="offer-title">Digital Career-Readiness Confirmation</div>
+                    <p class="offer-copy">
+                        The student profile has met the model's placement-readiness
+                        criteria with a probability of <b>{probability * 100:.2f}%</b>.
+                        The next recommended stage is company-specific preparation,
+                        résumé refinement and mock interview practice.
+                    </p>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+        else:
+            st.markdown(
+                """
+                <div class="offer-card" style="border-color:#fed7aa;background:linear-gradient(135deg,#fff7ed,#ffffff);">
+                    <span class="offer-status" style="background:#ffedd5;color:#9a3412;">Development Plan Active</span>
+                    <div class="offer-title" style="color:#9a3412;">Career-Readiness Improvement Plan</div>
+                    <p class="offer-copy">
+                        The profile has not yet reached the recommended readiness
+                        threshold. Use the personalised recommendations and four-week
+                        action plan to strengthen the next assessment.
+                    </p>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
 
         st.markdown("#### Download Report")
 
