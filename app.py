@@ -1,4 +1,5 @@
 from pathlib import Path
+from textwrap import dedent
 import io
 
 import joblib
@@ -795,14 +796,12 @@ def get_candidate_tier(probability: float):
 def render_success_experience(prediction: str, probability: float, readiness: str):
     tier, medal, candidate_label = get_candidate_tier(probability)
 
-    st.markdown(
+    achievement_html = dedent(
         f"""
         <div class="achievement-shell">
             <div class="achievement-grid">
                 <div>
-                    <div class="achievement-kicker">
-                        🏆 Placement Achievement Unlocked
-                    </div>
+                    <div class="achievement-kicker">🏆 Placement Achievement Unlocked</div>
 
                     <div class="achievement-title">
                         Congratulations — the profile is placement ready.
@@ -844,11 +843,12 @@ def render_success_experience(prediction: str, probability: float, readiness: st
         <div class="readiness-badge">
             {medal} {tier} • {candidate_label}
         </div>
-        """,
-        unsafe_allow_html=True,
-    )
+        """
+    ).strip()
 
-    st.markdown(
+    st.markdown(achievement_html, unsafe_allow_html=True)
+
+    journey_html = dedent(
         """
         <div class="journey">
             <div class="journey-step">
@@ -875,13 +875,14 @@ def render_success_experience(prediction: str, probability: float, readiness: st
                 <div class="journey-step-subtitle">Achieved</div>
             </div>
         </div>
-        """,
-        unsafe_allow_html=True,
-    )
+        """
+    ).strip()
+
+    st.markdown(journey_html, unsafe_allow_html=True)
 
 
 def render_support_experience(probability: float):
-    st.markdown(
+    support_html = dedent(
         f"""
         <div class="support-shell">
             <div class="support-title">🚀 Growth Path Identified</div>
@@ -891,10 +892,10 @@ def render_support_experience(probability: float):
                 the areas where focused preparation can improve placement readiness.
             </p>
         </div>
-        """,
-        unsafe_allow_html=True,
-    )
+        """
+    ).strip()
 
+    st.markdown(support_html, unsafe_allow_html=True)
 
 
 # =========================================================
@@ -1729,7 +1730,7 @@ with tab4:
         )
 
         if placed_outcome:
-            st.markdown(
+            offer_html = dedent(
                 f"""
                 <div class="offer-card">
                     <span class="offer-status">Placement Readiness Approved</span>
@@ -1741,11 +1742,10 @@ with tab4:
                         résumé refinement and mock interview practice.
                     </p>
                 </div>
-                """,
-                unsafe_allow_html=True,
-            )
+                """
+            ).strip()
         else:
-            st.markdown(
+            offer_html = dedent(
                 """
                 <div class="offer-card" style="border-color:#fed7aa;background:linear-gradient(135deg,#fff7ed,#ffffff);">
                     <span class="offer-status" style="background:#ffedd5;color:#9a3412;">Development Plan Active</span>
@@ -1756,9 +1756,10 @@ with tab4:
                         action plan to strengthen the next assessment.
                     </p>
                 </div>
-                """,
-                unsafe_allow_html=True,
-            )
+                """
+            ).strip()
+
+        st.markdown(offer_html, unsafe_allow_html=True)
 
         st.markdown("#### Download Report")
 
