@@ -79,6 +79,36 @@ st.markdown(
         fill: #111827 !important;
     }
 
+    /* Keep number-input values and minus/plus controls clearly visible */
+    section[data-testid="stSidebar"] div[data-testid="stNumberInput"] input {
+        color: #111827 !important;
+        -webkit-text-fill-color: #111827 !important;
+        font-weight: 600 !important;
+        background: #ffffff !important;
+    }
+
+    section[data-testid="stSidebar"] div[data-testid="stNumberInput"] button {
+        background: #eef2ff !important;
+        color: #312e81 !important;
+        border-left: 1px solid #c7d2fe !important;
+    }
+
+    section[data-testid="stSidebar"] div[data-testid="stNumberInput"] button:hover {
+        background: #c7d2fe !important;
+        color: #1e1b4b !important;
+    }
+
+    section[data-testid="stSidebar"] div[data-testid="stNumberInput"] button svg {
+        color: #312e81 !important;
+        fill: #312e81 !important;
+        stroke: #312e81 !important;
+    }
+
+    section[data-testid="stSidebar"] div[data-testid="stNumberInput"] button svg path {
+        fill: #312e81 !important;
+        stroke: #312e81 !important;
+    }
+
     section[data-testid="stSidebar"] div.stButton > button,
     section[data-testid="stSidebar"] button[kind="primary"] {
         width: 100% !important;
