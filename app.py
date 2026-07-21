@@ -1,6 +1,7 @@
 from pathlib import Path
 from textwrap import dedent
 import io
+import re
 
 import joblib
 import numpy as np
@@ -752,6 +753,12 @@ def build_recommendations(values: dict, probability: float):
     return items[:5]
 
 
+def render_html(html: str) -> None:
+    """Render HTML safely without Markdown interpreting indented tags as code."""
+    compact_html = re.sub(r">\s+<", "><", dedent(html).strip())
+    st.markdown(compact_html, unsafe_allow_html=True)
+
+
 def normalize_prediction_label(prediction: str) -> str:
     return str(prediction).strip().lower().replace("_", " ")
 
@@ -846,7 +853,7 @@ def render_success_experience(prediction: str, probability: float, readiness: st
         """
     ).strip()
 
-    st.markdown(achievement_html, unsafe_allow_html=True)
+    render_html(achievement_html)
 
     journey_html = dedent(
         """
@@ -878,7 +885,7 @@ def render_success_experience(prediction: str, probability: float, readiness: st
         """
     ).strip()
 
-    st.markdown(journey_html, unsafe_allow_html=True)
+    render_html(journey_html)
 
 
 def render_support_experience(probability: float):
@@ -895,7 +902,7 @@ def render_support_experience(probability: float):
         """
     ).strip()
 
-    st.markdown(support_html, unsafe_allow_html=True)
+    render_html(support_html)
 
 
 # =========================================================
@@ -1759,7 +1766,7 @@ with tab4:
                 """
             ).strip()
 
-        st.markdown(offer_html, unsafe_allow_html=True)
+        render_html(offer_html)
 
         st.markdown("#### Download Report")
 
@@ -1792,3 +1799,4 @@ st.markdown("---")
 st.caption(
     "Academic decision-support application • The output should support, not replace, human placement decisions."
 )
+
