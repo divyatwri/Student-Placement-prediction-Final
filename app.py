@@ -1,5 +1,7 @@
 from pathlib import Path
+from textwrap import dedent
 import io
+import re
 
 import joblib
 import numpy as np
@@ -77,6 +79,36 @@ st.markdown(
     section[data-testid="stSidebar"] div[data-baseweb="select"] svg {
         color: #111827 !important;
         fill: #111827 !important;
+    }
+
+    /* Keep number-input values and minus/plus controls clearly visible */
+    section[data-testid="stSidebar"] div[data-testid="stNumberInput"] input {
+        color: #111827 !important;
+        -webkit-text-fill-color: #111827 !important;
+        font-weight: 600 !important;
+        background: #ffffff !important;
+    }
+
+    section[data-testid="stSidebar"] div[data-testid="stNumberInput"] button {
+        background: #eef2ff !important;
+        color: #312e81 !important;
+        border-left: 1px solid #c7d2fe !important;
+    }
+
+    section[data-testid="stSidebar"] div[data-testid="stNumberInput"] button:hover {
+        background: #c7d2fe !important;
+        color: #1e1b4b !important;
+    }
+
+    section[data-testid="stSidebar"] div[data-testid="stNumberInput"] button svg {
+        color: #312e81 !important;
+        fill: #312e81 !important;
+        stroke: #312e81 !important;
+    }
+
+    section[data-testid="stSidebar"] div[data-testid="stNumberInput"] button svg path {
+        fill: #312e81 !important;
+        stroke: #312e81 !important;
     }
 
     section[data-testid="stSidebar"] div.stButton > button,
@@ -242,17 +274,281 @@ st.markdown(
         line-height: 1.55;
     }
 
-    .career-shell {margin:1.1rem 0;padding:1.35rem;border-radius:22px;background:linear-gradient(135deg,#ffffff 0%,#eef2ff 100%);border:1px solid #c7d2fe;box-shadow:0 14px 34px rgba(79,70,229,.10);}
-    .career-title {color:#312e81;font-size:1.35rem;font-weight:800;margin-bottom:.25rem;}
-    .career-subtitle {color:#64748b;line-height:1.6;margin:0;}
-    .career-score-card {padding:1.25rem;border-radius:20px;background:linear-gradient(135deg,#111827 0%,#312e81 100%);color:#fff;box-shadow:0 16px 34px rgba(30,41,59,.18);text-align:center;}
-    .career-score-value {font-size:2.5rem;line-height:1;font-weight:800;margin-top:.25rem;}
-    .career-score-label {color:#c7d2fe;font-weight:700;font-size:.78rem;text-transform:uppercase;letter-spacing:.06em;}
-    .career-level {display:inline-block;margin-top:.75rem;padding:.38rem .7rem;border-radius:999px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);color:#fff;font-size:.78rem;font-weight:800;}
-    .career-insight {padding:.85rem .95rem;border-radius:14px;background:#fff;border:1px solid #e2e8f0;box-shadow:0 7px 18px rgba(15,23,42,.05);margin-bottom:.65rem;}
-    .career-insight-title {color:#0f172a;font-weight:800;margin-bottom:.18rem;}
-    .career-insight-copy {color:#64748b;font-size:.88rem;line-height:1.55;margin:0;}
-    .source-note {padding:.85rem 1rem;border-radius:14px;background:#eff6ff;border:1px solid #bfdbfe;color:#1e3a8a;font-size:.86rem;line-height:1.55;margin:.7rem 0;}
+    /* Premium success / readiness experience */
+    .achievement-shell {
+        position: relative;
+        overflow: hidden;
+        padding: 1.4rem;
+        margin: 1rem 0 1.1rem;
+        border-radius: 22px;
+        background:
+            radial-gradient(circle at 85% 15%, rgba(255,255,255,.18), transparent 24%),
+            linear-gradient(135deg, #0f172a 0%, #312e81 52%, #0f766e 100%);
+        border: 1px solid rgba(255,255,255,.18);
+        box-shadow: 0 18px 46px rgba(15,23,42,.22);
+        animation: achievementFade .7s ease-out;
+    }
+
+    .achievement-shell:before {
+        content: "";
+        position: absolute;
+        width: 190px;
+        height: 190px;
+        right: -55px;
+        top: -65px;
+        border-radius: 50%;
+        background: rgba(255,255,255,.08);
+    }
+
+    .achievement-grid {
+        position: relative;
+        z-index: 2;
+        display: grid;
+        grid-template-columns: 1.35fr .65fr;
+        gap: 1.1rem;
+        align-items: center;
+    }
+
+    .achievement-kicker {
+        display: inline-flex;
+        align-items: center;
+        gap: .45rem;
+        padding: .35rem .75rem;
+        border-radius: 999px;
+        background: rgba(250,204,21,.14);
+        border: 1px solid rgba(250,204,21,.38);
+        color: #fde68a;
+        font-size: .76rem;
+        font-weight: 800;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+    }
+
+    .achievement-title {
+        margin: .75rem 0 .35rem;
+        color: #ffffff;
+        font-size: 1.85rem;
+        font-weight: 800;
+        letter-spacing: -.025em;
+    }
+
+    .achievement-copy {
+        margin: 0;
+        color: #dbeafe;
+        line-height: 1.65;
+        font-size: .96rem;
+    }
+
+    .achievement-metrics {
+        display: flex;
+        gap: .75rem;
+        flex-wrap: wrap;
+        margin-top: 1rem;
+    }
+
+    .achievement-pill {
+        padding: .65rem .8rem;
+        border-radius: 13px;
+        background: rgba(255,255,255,.10);
+        border: 1px solid rgba(255,255,255,.14);
+        min-width: 135px;
+    }
+
+    .achievement-pill-label {
+        color: #bfdbfe;
+        font-size: .68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .05em;
+    }
+
+    .achievement-pill-value {
+        color: #ffffff;
+        font-size: 1rem;
+        font-weight: 800;
+        margin-top: .16rem;
+    }
+
+    .graduate-visual {
+        position: relative;
+        min-height: 180px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .graduate-card {
+        width: 165px;
+        height: 165px;
+        border-radius: 28px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background:
+            radial-gradient(circle at 50% 35%, rgba(255,255,255,.22), transparent 34%),
+            linear-gradient(145deg, rgba(255,255,255,.16), rgba(255,255,255,.06));
+        border: 1px solid rgba(255,255,255,.18);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,.18), 0 16px 32px rgba(0,0,0,.18);
+        animation: gentleFloat 3.4s ease-in-out infinite;
+    }
+
+    .graduate-icon {
+        font-size: 4.4rem;
+        line-height: 1;
+        filter: drop-shadow(0 8px 12px rgba(0,0,0,.20));
+    }
+
+    .graduate-label {
+        margin-top: .55rem;
+        color: #ffffff;
+        font-size: .76rem;
+        font-weight: 800;
+        letter-spacing: .10em;
+        text-transform: uppercase;
+    }
+
+    .readiness-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: .55rem;
+        padding: .72rem 1rem;
+        border-radius: 14px;
+        background: linear-gradient(135deg, #fef3c7, #fde68a);
+        color: #78350f;
+        border: 1px solid #f59e0b;
+        font-weight: 800;
+        box-shadow: 0 10px 24px rgba(245,158,11,.18);
+        margin: .7rem 0 1rem;
+    }
+
+    .journey {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: .65rem;
+        margin-top: 1rem;
+    }
+
+    .journey-step {
+        position: relative;
+        padding: .8rem .65rem;
+        border-radius: 14px;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 8px 20px rgba(15,23,42,.06);
+        text-align: center;
+    }
+
+    .journey-step-icon {
+        font-size: 1.4rem;
+    }
+
+    .journey-step-title {
+        color: #0f172a;
+        font-weight: 800;
+        font-size: .82rem;
+        margin-top: .25rem;
+    }
+
+    .journey-step-subtitle {
+        color: #64748b;
+        font-size: .69rem;
+        margin-top: .15rem;
+    }
+
+    .offer-card {
+        position: relative;
+        overflow: hidden;
+        padding: 1.2rem 1.25rem;
+        border-radius: 18px;
+        background:
+            linear-gradient(135deg, rgba(255,255,255,.97), rgba(240,253,250,.97));
+        border: 1px solid #a7f3d0;
+        box-shadow: 0 14px 34px rgba(5,150,105,.10);
+    }
+
+    .offer-card:after {
+        content: "✓";
+        position: absolute;
+        right: 1rem;
+        top: .6rem;
+        font-size: 4rem;
+        color: rgba(16,185,129,.12);
+        font-weight: 800;
+    }
+
+    .offer-status {
+        display: inline-block;
+        padding: .3rem .6rem;
+        border-radius: 999px;
+        background: #d1fae5;
+        color: #065f46;
+        font-size: .72rem;
+        font-weight: 800;
+        letter-spacing: .05em;
+        text-transform: uppercase;
+    }
+
+    .offer-title {
+        color: #064e3b;
+        margin: .65rem 0 .3rem;
+        font-size: 1.2rem;
+        font-weight: 800;
+    }
+
+    .offer-copy {
+        color: #475569;
+        margin: 0;
+        line-height: 1.6;
+        font-size: .9rem;
+    }
+
+    .support-shell {
+        padding: 1.25rem;
+        margin: 1rem 0;
+        border-radius: 20px;
+        background: linear-gradient(135deg, #fff7ed, #fef2f2);
+        border: 1px solid #fed7aa;
+        box-shadow: 0 12px 30px rgba(234,88,12,.08);
+    }
+
+    .support-title {
+        color: #9a3412;
+        font-size: 1.3rem;
+        font-weight: 800;
+        margin-bottom: .35rem;
+    }
+
+    .support-copy {
+        color: #7c2d12;
+        line-height: 1.6;
+        margin: 0;
+    }
+
+    @keyframes gentleFloat {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-8px); }
+    }
+
+    @keyframes achievementFade {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 900px) {
+        .achievement-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .journey {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .graduate-visual {
+            min-height: 150px;
+        }
+    }
+
 
     button[data-baseweb="tab"] {
         font-weight: 700 !important;
@@ -457,54 +753,156 @@ def build_recommendations(values: dict, probability: float):
     return items[:5]
 
 
+def render_html(html: str) -> None:
+    """Render HTML safely without Markdown interpreting indented tags as code."""
+    compact_html = re.sub(r">\s+<", "><", dedent(html).strip())
+    st.markdown(compact_html, unsafe_allow_html=True)
 
-def calculate_career_readiness(career: dict):
-    components = {
-        "Internships": min(career["internships"], 3) / 3 * 15,
-        "Certifications": min(career["certifications"], 5) / 5 * 10,
-        "Projects": min(career["projects"], 5) / 5 * 15,
-        "Technical Skills": min(len(career["technical_skills"]), 6) / 6 * 15,
-        "Communication": career["communication_rating"] / 5 * 10,
-        "Resume": {"Basic": 4, "Good": 7, "Excellent": 10}[career["resume_quality"]],
-        "Mock Interview": career["mock_interview_score"] / 100 * 10,
-        "LinkedIn": 5 if career["linkedin_profile"] == "Yes" else 0,
-        "GitHub": 5 if career["github_profile"] == "Yes" else 0,
-        "Leadership": min(career["leadership_activities"], 3) / 3 * 5,
+
+def normalize_prediction_label(prediction: str) -> str:
+    return str(prediction).strip().lower().replace("_", " ")
+
+
+def is_placed_prediction(prediction: str, probability: float) -> bool:
+    normalized = normalize_prediction_label(prediction)
+
+    positive_labels = {
+        "placed",
+        "1",
+        "yes",
+        "true",
+        "selected",
+        "placement",
     }
-    score = round(min(sum(components.values()), 100), 2)
-    if score >= 80:
-        level, risk = "Excellent Career Readiness", "Low Career Risk"
-    elif score >= 65:
-        level, risk = "Strong Career Readiness", "Moderate-Low Career Risk"
-    elif score >= 50:
-        level, risk = "Developing Career Readiness", "Moderate Career Risk"
-    else:
-        level, risk = "Needs Career Development", "High Career Risk"
-    return score, level, risk, components
+
+    negative_labels = {
+        "not placed",
+        "0",
+        "no",
+        "false",
+        "not selected",
+    }
+
+    if normalized in positive_labels:
+        return True
+
+    if normalized in negative_labels:
+        return False
+
+    return probability >= 0.50
 
 
-def build_career_recommendations(career: dict):
-    items=[]
-    if career["internships"] == 0: items.append("Complete at least one internship or live industry project to build practical exposure.")
-    if career["certifications"] < 2: items.append("Complete two role-relevant certifications aligned with the target career path.")
-    if career["projects"] < 2: items.append("Build at least two portfolio projects that demonstrate practical problem-solving.")
-    if len(career["technical_skills"]) < 3: items.append("Strengthen the technical skill portfolio with at least three job-relevant tools or technologies.")
-    if career["communication_rating"] < 4: items.append("Improve communication through presentations, group discussions and interview practice.")
-    if career["resume_quality"] == "Basic": items.append("Redesign the resume with quantified achievements, project outcomes and role-specific keywords.")
-    if career["mock_interview_score"] < 70: items.append("Complete regular mock interviews and track improvements in confidence and answer quality.")
-    if career["linkedin_profile"] == "No": items.append("Create and optimise a LinkedIn profile with a clear headline, skills, projects and experience.")
-    if career["github_profile"] == "No" and career["technical_skills"]: items.append("Create a GitHub portfolio and upload selected analytics, coding or machine-learning projects.")
-    if career["leadership_activities"] == 0: items.append("Join a leadership, club, volunteering or event-management activity to demonstrate initiative.")
-    if not items: items.append("The career profile is strong. Focus on company-specific preparation, networking and interview conversion.")
-    return items[:6]
+def get_candidate_tier(probability: float):
+    if probability >= 0.85:
+        return "Gold Ready", "🥇", "Exceptional Candidate"
+    if probability >= 0.70:
+        return "Silver Ready", "🥈", "Strong Candidate"
+    return "Bronze Ready", "🥉", "Developing Candidate"
 
 
-def career_breakdown_chart(breakdown: dict):
-    labels=list(breakdown.keys()); values=list(breakdown.values())
-    palette=["#4F46E5","#06B6D4","#10B981","#F59E0B","#F43F5E","#8B5CF6","#0EA5E9","#14B8A6","#6366F1","#EC4899"]
-    fig=go.Figure(go.Bar(x=values,y=labels,orientation="h",marker=dict(color=palette[:len(values)]),text=[f"{v:.1f}" for v in values],textposition="outside"))
-    fig.update_layout(height=470,xaxis=dict(title="Readiness Contribution",range=[0,16],gridcolor="#E2E8F0"),yaxis=dict(autorange="reversed"),margin=dict(l=20,r=35,t=25,b=35),paper_bgcolor="rgba(0,0,0,0)",plot_bgcolor="rgba(255,255,255,.82)",font={"family":"Inter","color":"#334155"},showlegend=False)
-    return fig
+def render_success_experience(prediction: str, probability: float, readiness: str):
+    tier, medal, candidate_label = get_candidate_tier(probability)
+
+    achievement_html = dedent(
+        f"""
+        <div class="achievement-shell">
+            <div class="achievement-grid">
+                <div>
+                    <div class="achievement-kicker">🏆 Placement Achievement Unlocked</div>
+
+                    <div class="achievement-title">
+                        Congratulations — the profile is placement ready.
+                    </div>
+
+                    <p class="achievement-copy">
+                        The model has identified a positive placement outcome.
+                        The student demonstrates a strong combination of academic,
+                        employability and profile-readiness indicators.
+                    </p>
+
+                    <div class="achievement-metrics">
+                        <div class="achievement-pill">
+                            <div class="achievement-pill-label">Prediction</div>
+                            <div class="achievement-pill-value">{prediction}</div>
+                        </div>
+
+                        <div class="achievement-pill">
+                            <div class="achievement-pill-label">Probability</div>
+                            <div class="achievement-pill-value">{probability * 100:.2f}%</div>
+                        </div>
+
+                        <div class="achievement-pill">
+                            <div class="achievement-pill-label">Candidate Tier</div>
+                            <div class="achievement-pill-value">{tier}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="graduate-visual">
+                    <div class="graduate-card">
+                        <div class="graduate-icon">👩‍🎓</div>
+                        <div class="graduate-label">Career Ready</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="readiness-badge">
+            {medal} {tier} • {candidate_label}
+        </div>
+        """
+    ).strip()
+
+    render_html(achievement_html)
+
+    journey_html = dedent(
+        """
+        <div class="journey">
+            <div class="journey-step">
+                <div class="journey-step-icon">📘</div>
+                <div class="journey-step-title">Academic Profile</div>
+                <div class="journey-step-subtitle">Evaluated</div>
+            </div>
+
+            <div class="journey-step">
+                <div class="journey-step-icon">🧠</div>
+                <div class="journey-step-title">Employability</div>
+                <div class="journey-step-subtitle">Assessed</div>
+            </div>
+
+            <div class="journey-step">
+                <div class="journey-step-icon">⚙️</div>
+                <div class="journey-step-title">ML Evaluation</div>
+                <div class="journey-step-subtitle">Completed</div>
+            </div>
+
+            <div class="journey-step">
+                <div class="journey-step-icon">🎯</div>
+                <div class="journey-step-title">Placement Ready</div>
+                <div class="journey-step-subtitle">Achieved</div>
+            </div>
+        </div>
+        """
+    ).strip()
+
+    render_html(journey_html)
+
+
+def render_support_experience(probability: float):
+    support_html = dedent(
+        f"""
+        <div class="support-shell">
+            <div class="support-title">🚀 Growth Path Identified</div>
+            <p class="support-copy">
+                The current probability is {probability * 100:.2f}%.
+                This is not a final judgment. The application has identified
+                the areas where focused preparation can improve placement readiness.
+            </p>
+        </div>
+        """
+    ).strip()
+
+    render_html(support_html)
 
 
 # =========================================================
@@ -851,19 +1249,6 @@ with st.sidebar:
             0.5,
         )
 
-        st.markdown("### Career Readiness Profile")
-        st.caption("These fields improve the career assessment, not the trained ML prediction.")
-        internships = st.number_input("Number of Internships", min_value=0, max_value=10, value=1, step=1)
-        certifications = st.number_input("Number of Certifications", min_value=0, max_value=20, value=1, step=1)
-        projects = st.number_input("Projects Completed", min_value=0, max_value=20, value=2, step=1)
-        technical_skills = st.multiselect("Technical Skills", ["Excel","SQL","Power BI","Tableau","Python","R","Machine Learning","Data Visualization","Statistics","Communication"], default=["Excel","SQL","Power BI"])
-        communication_rating = st.slider("Communication Rating",1,5,3)
-        resume_quality = st.selectbox("Resume Quality", ["Basic","Good","Excellent"], index=1)
-        mock_interview_score = st.slider("Mock Interview Score",0,100,65,5)
-        linkedin_profile = st.selectbox("LinkedIn Profile", ["Yes","No"], index=0)
-        github_profile = st.selectbox("GitHub Profile", ["Yes","No"], index=1)
-        leadership_activities = st.number_input("Leadership / Extracurricular Activities", min_value=0, max_value=10, value=1, step=1)
-
         submitted = st.form_submit_button(
             "Predict Placement",
             type="primary",
@@ -949,19 +1334,6 @@ input_values = {
 }
 
 raw_input_df = pd.DataFrame([input_values], columns=MODEL_FEATURES)
-
-career_values = {
-    "internships": int(internships),
-    "certifications": int(certifications),
-    "projects": int(projects),
-    "technical_skills": technical_skills,
-    "communication_rating": int(communication_rating),
-    "resume_quality": resume_quality,
-    "mock_interview_score": int(mock_interview_score),
-    "linkedin_profile": linkedin_profile,
-    "github_profile": github_profile,
-    "leadership_activities": int(leadership_activities),
-}
 
 
 # =========================================================
@@ -1054,9 +1426,6 @@ low_score_count = sum(
     for score in [ssc_p, hsc_p, degree_p, etest_p, mba_p]
 )
 
-career_score, career_level, career_risk, career_breakdown = calculate_career_readiness(career_values)
-career_recommendations = build_career_recommendations(career_values)
-
 
 # =========================================================
 # RESULTS HEADER
@@ -1069,6 +1438,17 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
+
+placed_outcome = is_placed_prediction(prediction, probability)
+
+if placed_outcome:
+    render_success_experience(
+        prediction=prediction,
+        probability=probability,
+        readiness=readiness,
+    )
+else:
+    render_support_experience(probability)
 
 k1, k2, k3, k4 = st.columns(4)
 
@@ -1095,12 +1475,11 @@ for column, (label, value) in zip([k1, k2, k3, k4], kpis):
 # =========================================================
 # REPORT TABS
 # =========================================================
-tab1, tab2, tab3, tab4, tab5 = st.tabs(
+tab1, tab2, tab3, tab4 = st.tabs(
     [
         "Executive Summary",
         "Visual Analytics",
         "Recommendations",
-        "Career Readiness Analyzer",
         "Final Report",
     ]
 )
@@ -1283,24 +1662,6 @@ with tab3:
 
 
 with tab4:
-    st.markdown('<div class="section-title">Career Readiness Analyzer</div>', unsafe_allow_html=True)
-    st.markdown("<div class='source-note'><b>Important:</b> This is a transparent rule-based career assessment. These extra fields are not used by the trained ML model because they were not present in the original training dataset.</div>", unsafe_allow_html=True)
-    score_col, insight_col = st.columns([0.8,1.2], gap="large")
-    with score_col:
-        st.markdown(f"<div class='career-score-card'><div class='career-score-label'>Career Readiness Score</div><div class='career-score-value'>{career_score:.0f}/100</div><div class='career-level'>{career_level}</div></div>", unsafe_allow_html=True)
-        st.markdown("#### Career Risk")
-        st.info(career_risk)
-    with insight_col:
-        st.markdown("<div class='career-shell'><div class='career-title'>Professional Profile Assessment</div><p class='career-subtitle'>This complements the ML prediction by evaluating practical exposure, professional branding, technical preparation and interview readiness.</p></div>", unsafe_allow_html=True)
-        for label, value in [("Internships",f"{career_values['internships']} completed"),("Certifications",f"{career_values['certifications']} completed"),("Projects",f"{career_values['projects']} completed"),("Technical Skills",f"{len(career_values['technical_skills'])} selected"),("Communication",f"{career_values['communication_rating']}/5"),("Mock Interview",f"{career_values['mock_interview_score']}/100")]:
-            st.markdown(f"<div class='career-insight'><div class='career-insight-title'>{label}</div><p class='career-insight-copy'>{value}</p></div>", unsafe_allow_html=True)
-    st.markdown("#### Career Readiness Contribution")
-    st.plotly_chart(career_breakdown_chart(career_breakdown), use_container_width=True, config={"displayModeBar":False})
-    st.markdown("#### Career Development Recommendations")
-    for index, recommendation in enumerate(career_recommendations, start=1):
-        st.markdown(f"<div class='recommendation'><b>{index}. Career Action</b><br>{recommendation}</div>", unsafe_allow_html=True)
-
-with tab5:
     st.markdown(
         '<div class="section-title">Final Placement Readiness Report</div>',
         unsafe_allow_html=True,
@@ -1375,14 +1736,55 @@ with tab5:
             unsafe_allow_html=True,
         )
 
-        st.markdown("#### Combined Decision View")
-        combined_df = pd.DataFrame({"Assessment":["ML Placement Prediction","ML Placement Probability","ML Readiness Category","Career Readiness Score","Career Readiness Level","Career Risk"],"Result":[prediction,f"{probability*100:.2f}%",readiness,f"{career_score:.2f}/100",career_level,career_risk]})
-        st.dataframe(combined_df,use_container_width=True,hide_index=True)
+        if placed_outcome:
+            offer_html = dedent(
+                f"""
+                <div class="offer-card">
+                    <span class="offer-status">Placement Readiness Approved</span>
+                    <div class="offer-title">Digital Career-Readiness Confirmation</div>
+                    <p class="offer-copy">
+                        The student profile has met the model's placement-readiness
+                        criteria with a probability of <b>{probability * 100:.2f}%</b>.
+                        The next recommended stage is company-specific preparation,
+                        résumé refinement and mock interview practice.
+                    </p>
+                </div>
+                """
+            ).strip()
+        else:
+            offer_html = dedent(
+                """
+                <div class="offer-card" style="border-color:#fed7aa;background:linear-gradient(135deg,#fff7ed,#ffffff);">
+                    <span class="offer-status" style="background:#ffedd5;color:#9a3412;">Development Plan Active</span>
+                    <div class="offer-title" style="color:#9a3412;">Career-Readiness Improvement Plan</div>
+                    <p class="offer-copy">
+                        The profile has not yet reached the recommended readiness
+                        threshold. Use the personalised recommendations and four-week
+                        action plan to strengthen the next assessment.
+                    </p>
+                </div>
+                """
+            ).strip()
+
+        render_html(offer_html)
+
         st.markdown("#### Download Report")
 
-        full_report = pd.DataFrame([{"Prediction":prediction,"Placement Probability":f"{probability*100:.2f}%","ML Readiness Category":readiness,"ML Risk Level":risk_level,"Academic Average":round(academic_average,2),"Employability Average":round(employability_average,2),"Academic Growth":round(academic_growth,2),"Low Score Count":int(low_score_count),"Internships":career_values["internships"],"Certifications":career_values["certifications"],"Projects":career_values["projects"],"Technical Skills":", ".join(career_values["technical_skills"]),"Communication Rating":career_values["communication_rating"],"Resume Quality":career_values["resume_quality"],"Mock Interview Score":career_values["mock_interview_score"],"LinkedIn Profile":career_values["linkedin_profile"],"GitHub Profile":career_values["github_profile"],"Leadership Activities":career_values["leadership_activities"],"Career Readiness Score":career_score,"Career Readiness Level":career_level,"Career Risk":career_risk}])
-        csv_data=full_report.to_csv(index=False)
-        st.download_button("Download Complete Result as CSV",data=csv_data,file_name="student_placement_and_career_readiness_report.csv",mime="text/csv",use_container_width=True)
+        csv_data = create_report_csv(
+            input_values,
+            prediction,
+            probability,
+            readiness,
+            risk_level,
+        )
+
+        st.download_button(
+            "Download Result as CSV",
+            data=csv_data,
+            file_name="student_placement_readiness_report.csv",
+            mime="text/csv",
+            use_container_width=True,
+        )
 
         st.markdown("#### Technical Information")
         st.info(
